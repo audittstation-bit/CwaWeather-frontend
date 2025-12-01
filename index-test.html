@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>極簡天氣</title>
+    <title>森森天氣</title>
     <link rel="icon" type="image/png" href="./icon-v2.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -336,11 +336,40 @@
     <script>
         console.log('=== 天氣 App 開始載入 ===');
 
-        const CITIES = ['臺北市', '新北市', '桃園市', '臺中市', '臺南市', '高雄市'];
-        let currentCityIndex = 1;
-        // 嘗試不同的 CORS proxy
-        const ORIGINAL_API = "https://weather-newtaipei-lk.zeabur.app/api/weather/kaohsiung";
-        const API_URL = "https://corsproxy.io/?" + encodeURIComponent(ORIGINAL_API);
+        const CITIES = [
+            '臺北市', '新北市', '桃園市', '臺中市', '臺南市', '高雄市',
+            '基隆市', '新竹市', '新竹縣', '苗栗縣', '彰化縣', '南投縣',
+            '雲林縣', '嘉義市', '嘉義縣', '屏東縣', '宜蘭縣', '花蓮縣',
+            '臺東縣', '澎湖縣', '金門縣', '連江縣'
+        ];
+        
+        const CITY_API_MAP = {
+            '臺北市': 'taipei',
+            '新北市': 'newtaipei', 
+            '桃園市': 'taoyuan',
+            '臺中市': 'taichung',
+            '臺南市': 'tainan',
+            '高雄市': 'kaohsiung',
+            '基隆市': 'keelung',
+            '新竹市': 'hsinchu-city',
+            '新竹縣': 'hsinchu',
+            '苗栗縣': 'miaoli',
+            '彰化縣': 'changhua',
+            '南投縣': 'nantou',
+            '雲林縣': 'yunlin',
+            '嘉義市': 'chiayi-city',
+            '嘉義縣': 'chiayi',
+            '屏東縣': 'pingtung',
+            '宜蘭縣': 'yilan',
+            '花蓮縣': 'hualien',
+            '臺東縣': 'taitung',
+            '澎湖縣': 'penghu',
+            '金門縣': 'kinmen',
+            '連江縣': 'lienchiang'
+        };
+        
+        let currentCityIndex = 1; // 預設新北市
+        const API_BASE = "https://weather-newtaipei-lk.zeabur.app/api/weather";
 
         function getWeatherIcon(weather) {
             if (!weather) return "🌤️";
@@ -385,12 +414,12 @@
 
             return {
                 rain: rain > 30 
-                    ? { icon: "☂️", text: "帶把傘", detail: `降雨率 ${rainProb}` } 
-                    : { icon: "🌂", text: "放下傘", detail: `降雨率 ${rainProb}` },
+                    ? { icon: "☂️", text: "記得帶傘", detail: `降雨率 ${rainProb}` } 
+                    : { icon: "🌂", text: "不需要傘", detail: `降雨率 ${rainProb}` },
                 cloth: temp >= 28 
-                    ? { icon: "👕", text: "穿上短袖", detail: `最高 ${maxTemp}` }
+                    ? { icon: "👕", text: "短袖出門", detail: `最高 ${maxTemp}` }
                     : temp <= 20 
-                    ? { icon: "🧥", text: "帶上外套", detail: `最高 ${maxTemp}` }
+                    ? { icon: "🧥", text: "記得外套", detail: `最高 ${maxTemp}` }
                     : { icon: "👔", text: "舒適穿搭", detail: `最高 ${maxTemp}` }
             };
         }
@@ -467,6 +496,12 @@
 
         async function fetchWeather() {
             console.log('開始抓取天氣資料...');
+            
+            const cityName = CITIES[currentCityIndex];
+            const cityCode = CITY_API_MAP[cityName];
+            const API_URL = `${API_BASE}/${cityCode}`;
+            
+            console.log('當前城市:', cityName);
             console.log('API URL:', API_URL);
 
             try {
@@ -506,8 +541,15 @@
 
         function changeCity(direction) {
             currentCityIndex = (currentCityIndex + direction + CITIES.length) % CITIES.length;
-            document.getElementById('cityName').textContent = CITIES[currentCityIndex];
-            console.log('切換城市:', CITIES[currentCityIndex]);
+            const cityName = CITIES[currentCityIndex];
+            document.getElementById('cityName').textContent = cityName;
+            
+            // 顯示載入畫面
+            document.getElementById('loading').style.display = 'flex';
+            document.getElementById('mainContent').style.display = 'none';
+            
+            // 重新載入新城市的天氣
+            fetchWeather();
         }
 
         document.getElementById('prevCity').addEventListener('click', () => changeCity(-1));
