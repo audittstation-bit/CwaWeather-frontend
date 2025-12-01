@@ -89,31 +89,23 @@
             gap: 12px;
         }
 
-        .nav-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(120, 120, 128, 0.16);
-            color: #007AFF;
-            font-size: 18px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .nav-btn:active {
-            transform: scale(0.95);
-            background: rgba(120, 120, 128, 0.24);
-        }
-
-        .location-name {
-            font-size: 17px;
+        /* Dropdown City Selector */
+        .city-dropdown {
+            padding: 6px 12px;
+            font-size: 16px;
             font-weight: 600;
-            min-width: 80px;
-            text-align: center;
+            border-radius: 8px;
+            border: 1px solid rgba(0,0,0,0.2);
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            cursor: pointer;
+        }
+
+        body.night .city-dropdown {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border-color: rgba(255,255,255,0.3);
         }
 
         .update-time {
@@ -319,9 +311,7 @@
     <nav class="navbar">
         <div class="nav-content">
             <div class="location-selector">
-                <button class="nav-btn" id="prevCity">‹</button>
-                <div class="location-name" id="cityName">新北市</div>
-                <button class="nav-btn" id="nextCity">›</button>
+                <select id="citySelect" class="city-dropdown"></select>
             </div>
             <div class="update-time" id="updateTime">更新中...</div>
         </div>
@@ -345,7 +335,7 @@
         
         const CITY_API_MAP = {
             '臺北市': 'taipei',
-            '新北市': 'newtaipei', 
+            '新北市': 'newtaipei',
             '桃園市': 'taoyuan',
             '臺中市': 'taichung',
             '臺南市': 'tainan',
@@ -367,7 +357,7 @@
             '金門縣': 'kinmen',
             '連江縣': 'lienchiang'
         };
-        
+
         let currentCityIndex = 1; // 預設新北市
         const API_BASE = "https://weather-newtaipei-lk.zeabur.app/api/weather";
 
@@ -393,13 +383,10 @@
         function updateBackgroundByTime() {
             const hour = new Date().getHours();
             document.body.classList.remove('dawn', 'day', 'evening', 'night');
-            
             if (hour >= 5 && hour < 11) document.body.classList.add('dawn');
             else if (hour >= 11 && hour < 18) document.body.classList.add('day');
             else if (hour >= 18 && hour < 23) document.body.classList.add('evening');
             else document.body.classList.add('night');
-            
-            console.log('當前時段:', hour, '時');
         }
 
         function parseTemp(tempStr) {
@@ -425,138 +412,119 @@
         }
 
         function renderWeather(data) {
-            console.log('開始渲染天氣資料:', data);
-            
-            try {
-                const forecasts = data.forecasts;
-                if (!forecasts || forecasts.length === 0) {
-                    throw new Error('預報資料為空');
-                }
+            const forecasts = data.forecasts;
+            const current = forecasts[0];
+            const others = forecasts.slice(1);
 
-                const current = forecasts[0];
-                const others = forecasts.slice(1);
+            const period = getTimePeriod(current.startTime);
+            const avgTemp = Math.round((parseTemp(current.maxTemp) + parseTemp(current.minTemp)) / 2);
+            const advice = getAdvice(current.rain, current.maxTemp);
 
-                const period = getTimePeriod(current.startTime);
-                const avgTemp = Math.round((parseTemp(current.maxTemp) + parseTemp(current.minTemp)) / 2);
-                const advice = getAdvice(current.rain, current.maxTemp);
-
-                document.getElementById('heroCard').innerHTML = `
-                    <div class="hero-card">
-                        <div class="period-badge">${period}</div>
-                        <div class="temp-display">
-                            <div class="weather-icon">${getWeatherIcon(current.weather)}</div>
-                            <div class="temp-main">${avgTemp}°</div>
+            document.getElementById('heroCard').innerHTML = `
+                <div class="hero-card">
+                    <div class="period-badge">${period}</div>
+                    <div class="temp-display">
+                        <div class="weather-icon">${getWeatherIcon(current.weather)}</div>
+                        <div class="temp-main">${avgTemp}°</div>
+                    </div>
+                    <div class="weather-desc">${current.weather}</div>
+                    <div class="advice-grid">
+                        <div class="advice-item">
+                            <div class="advice-icon">${advice.rain.icon}</div>
+                            <div class="advice-title">${advice.rain.text}</div>
+                            <div class="advice-detail">${advice.rain.detail}</div>
                         </div>
-                        <div class="weather-desc">${current.weather}</div>
-                        <div class="advice-grid">
-                            <div class="advice-item">
-                                <div class="advice-icon">${advice.rain.icon}</div>
-                                <div class="advice-title">${advice.rain.text}</div>
-                                <div class="advice-detail">${advice.rain.detail}</div>
-                            </div>
-                            <div class="advice-item">
-                                <div class="advice-icon">${advice.cloth.icon}</div>
-                                <div class="advice-title">${advice.cloth.text}</div>
-                                <div class="advice-detail">${advice.cloth.detail}</div>
-                            </div>
+                        <div class="advice-item">
+                            <div class="advice-icon">${advice.cloth.icon}</div>
+                            <div class="advice-title">${advice.cloth.text}</div>
+                            <div class="advice-detail">${advice.cloth.detail}</div>
                         </div>
                     </div>
+                </div>
+            `;
+
+            const scrollContainer = document.getElementById('futureForecasts');
+            scrollContainer.innerHTML = '';
+            const todayDate = new Date().getDate();
+
+            others.forEach(f => {
+                let p = getTimePeriod(f.startTime);
+                const fDate = new Date(f.startTime);
+                if (fDate.getDate() !== todayDate) p = "明天" + p;
+
+                scrollContainer.innerHTML += `
+                    <div class="forecast-card">
+                        <div class="forecast-time">${p}</div>
+                        <div class="forecast-icon">${getWeatherIcon(f.weather)}</div>
+                        <div class="forecast-temp">${f.minTemp} - ${f.maxTemp}</div>
+                        <div class="forecast-rain">💧 ${f.rain}</div>
+                    </div>
                 `;
+            });
 
-                const scrollContainer = document.getElementById('futureForecasts');
-                scrollContainer.innerHTML = '';
-                const todayDate = new Date().getDate();
-
-                others.forEach(f => {
-                    let p = getTimePeriod(f.startTime);
-                    const fDate = new Date(f.startTime);
-                    if (fDate.getDate() !== todayDate) p = "明天" + p;
-
-                    scrollContainer.innerHTML += `
-                        <div class="forecast-card">
-                            <div class="forecast-time">${p}</div>
-                            <div class="forecast-icon">${getWeatherIcon(f.weather)}</div>
-                            <div class="forecast-temp">${f.minTemp} - ${f.maxTemp}</div>
-                            <div class="forecast-rain">💧 ${f.rain}</div>
-                        </div>
-                    `;
-                });
-
-                const now = new Date();
-                const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
-                document.getElementById('updateTime').textContent = 
-                    `${now.getMonth() + 1}/${now.getDate()} 週${weekDays[now.getDay()]}`;
-
-                console.log('✅ 渲染完成');
-            } catch (error) {
-                console.error('渲染錯誤:', error);
-                throw error;
-            }
+            const now = new Date();
+            const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+            document.getElementById('updateTime').textContent =
+                `${now.getMonth() + 1}/${now.getDate()} 週${weekDays[now.getDay()]}`;
         }
 
         async function fetchWeather() {
-            console.log('開始抓取天氣資料...');
-            
             const cityName = CITIES[currentCityIndex];
             const cityCode = CITY_API_MAP[cityName];
             const API_URL = `${API_BASE}/${cityCode}`;
-            
-            console.log('當前城市:', cityName);
-            console.log('API URL:', API_URL);
 
             try {
                 const response = await fetch(API_URL);
-                console.log('API 回應狀態:', response.status, response.statusText);
-
-                if (!response.ok) {
-                    throw new Error(`HTTP Error: ${response.status}`);
-                }
-
                 const json = await response.json();
-                console.log('API 回應資料:', json);
 
                 if (json.success && json.data) {
                     renderWeather(json.data);
-                    
+
                     setTimeout(() => {
                         document.getElementById('loading').style.display = 'none';
                         document.getElementById('mainContent').style.display = 'block';
-                        console.log('✅ 畫面顯示完成');
                     }, 500);
-                } else {
-                    throw new Error('API 回傳格式錯誤');
                 }
             } catch (error) {
-                console.error('❌ 載入失敗:', error);
                 document.getElementById('loading').innerHTML = `
                     <div class="error-box">
                         <div style="font-size: 48px;">⚠️</div>
                         <p style="margin-top: 16px; color: var(--text-secondary); font-weight: 500;">無法載入天氣資料</p>
-                        <p style="margin-top: 8px; font-size: 13px; color: var(--text-secondary);">${error.message}</p>
                         <button class="retry-btn" onclick="location.reload()">重新載入</button>
                     </div>
                 `;
             }
         }
 
-        function changeCity(direction) {
-            currentCityIndex = (currentCityIndex + direction + CITIES.length) % CITIES.length;
-            const cityName = CITIES[currentCityIndex];
-            document.getElementById('cityName').textContent = cityName;
-            
-            // 顯示載入畫面
-            document.getElementById('loading').style.display = 'flex';
-            document.getElementById('mainContent').style.display = 'none';
-            
-            // 重新載入新城市的天氣
-            fetchWeather();
-        }
-
-        document.getElementById('prevCity').addEventListener('click', () => changeCity(-1));
-        document.getElementById('nextCity').addEventListener('click', () => changeCity(1));
-
+        /* ---------------------------
+           初始化 Dropdown + 事件綁定
+           --------------------------- */
         document.addEventListener("DOMContentLoaded", () => {
             console.log('DOM 載入完成');
+
+            const citySelect = document.getElementById("citySelect");
+
+            // 建立城市選項
+            CITIES.forEach((city, index) => {
+                const option = document.createElement("option");
+                option.value = index;
+                option.textContent = city;
+                citySelect.appendChild(option);
+            });
+
+            // 設定預設值（新北市 index = 1）
+            citySelect.value = currentCityIndex;
+
+            // 當選擇變動 → 更新城市並載入天氣
+            citySelect.addEventListener("change", () => {
+                currentCityIndex = parseInt(citySelect.value);
+
+                document.getElementById('loading').style.display = 'flex';
+                document.getElementById('mainContent').style.display = 'none';
+
+                fetchWeather();
+            });
+
             updateBackgroundByTime();
             fetchWeather();
         });
