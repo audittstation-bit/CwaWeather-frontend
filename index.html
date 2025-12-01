@@ -2,9 +2,9 @@
 <html lang="zh-TW">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>極簡天氣</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>極簡天氣 — Slider 版</title>
     <link rel="icon" type="image/png" href="./icon-v2.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,290 +14,120 @@
         :root {
             --text-primary: #1D1D1F;
             --text-secondary: #86868B;
-            --card-bg: rgba(255, 255, 255, 0.7);
+            --card-bg: rgba(255, 255, 255, 0.75);
             --glass-bg: rgba(255, 255, 255, 0.25);
+            --accent: #007AFF;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background: linear-gradient(180deg, #FFF9E3 0%, #FFE8B8 100%);
-            min-height: 100vh;
             color: var(--text-primary);
-            overflow-x: hidden;
-            transition: background 0.6s ease;
+            min-height: 100vh;
+            transition: background 0.5s ease;
             padding-bottom: 40px;
         }
 
         body.dawn { background: linear-gradient(180deg, #E8E8E8 0%, #F5F5F7 100%); }
         body.day { background: linear-gradient(180deg, #FFF9E3 0%, #FFE8B8 100%); }
         body.evening { background: linear-gradient(180deg, #B8D8D8 0%, #8FB8C8 100%); }
-        body.night { background: linear-gradient(180deg, #2C3E50 0%, #1A252F 100%); color: #FFFFFF; }
+        body.night { background: linear-gradient(180deg, #2C3E50 0%, #1A252F 100%); color: #fff; }
 
         .loading-screen {
-            position: fixed;
-            inset: 0;
+            position: fixed; inset: 0;
+            display:flex; align-items:center; justify-content:center; flex-direction:column;
             background: linear-gradient(180deg, #FFF9E3 0%, #FFE8B8 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
             z-index: 999;
         }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(0, 0, 0, 0.1);
-            border-top-color: #007AFF;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        .spinner { width:48px;height:48px;border:3px solid rgba(0,0,0,0.08);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;}
+        @keyframes spin { to{ transform: rotate(360deg); } }
 
         .navbar {
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            position: sticky; top: 0; z-index: 50;
             background: var(--glass-bg);
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-bottom: 0.5px solid rgba(0, 0, 0, 0.05);
+            border-bottom: 0.5px solid rgba(0,0,0,0.05);
         }
+        .nav-content { max-width:700px; margin:0 auto; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; gap:12px; }
 
-        .nav-content {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .location-selector {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        /* Dropdown City Selector */
+        .location-selector { display:flex; align-items:center; gap:12px; }
         .city-dropdown {
-            padding: 6px 12px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 8px;
-            border: 1px solid rgba(0,0,0,0.2);
-            background: rgba(255,255,255,0.6);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            cursor: pointer;
+            padding:8px 12px; font-size:16px; font-weight:600; border-radius:10px;
+            border:1px solid rgba(0,0,0,0.12); background: rgba(255,255,255,0.8); cursor:pointer;
         }
+        body.night .city-dropdown { background: rgba(255,255,255,0.08); color:#fff; border-color: rgba(255,255,255,0.12); }
 
-        body.night .city-dropdown {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            border-color: rgba(255,255,255,0.3);
+        .update-time { font-size:13px; color:var(--text-secondary); font-weight:500; white-space:nowrap; }
+
+        .container { max-width:700px; margin: 18px auto; padding: 0 20px 40px; }
+
+        /* Slider area */
+        .slider-wrap {
+            overflow: hidden;
+            border-radius: 18px;
+            position: relative;
         }
-
-        .update-time {
-            font-size: 13px;
-            color: var(--text-secondary);
-            font-weight: 500;
+        .slider-track {
+            display:flex;
+            transition: transform 300ms cubic-bezier(.22,.9,.2,1);
+            touch-action: pan-y;
         }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 24px 20px;
+        .slide {
+            min-width:100%;
+            padding:28px 22px;
+            display:flex;
+            gap:20px;
+            align-items:center;
+            justify-content:center;
         }
 
         .hero-card {
+            width:100%;
+            max-width:560px;
             background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 32px 24px;
-            margin-bottom: 24px;
-            border: 0.5px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+            border-radius:18px;
+            padding:22px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border: 0.5px solid rgba(255,255,255,0.6);
         }
 
-        .period-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            background: rgba(0, 122, 255, 0.1);
-            color: #007AFF;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
+        .period-badge { display:inline-block; padding:6px 12px; background: rgba(0,122,255,0.12); color:var(--accent); border-radius:10px; font-weight:600; margin-bottom:10px; font-size:13px;}
 
-        .temp-display {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            margin: 20px 0;
-        }
+        .temp-display { display:flex; align-items:center; justify-content:flex-start; gap:18px; margin:10px 0 4px; }
+        .weather-icon { font-size:72px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.08)); }
+        .temp-main { font-size:56px; font-weight:300; letter-spacing:-2px; }
+        .weather-desc { font-size:17px; font-weight:600; color:var(--text-secondary); margin-top:4px; }
 
-        .weather-icon {
-            font-size: 80px;
-            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
-        }
+        .advice-grid { display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:18px; }
+        .advice-item { background: rgba(0,0,0,0.04); border-radius:12px; padding:12px; text-align:center; }
+        .advice-icon { font-size:28px; margin-bottom:6px; }
+        .advice-title { font-weight:700; font-size:14px; }
+        .advice-detail { font-size:12px; color:var(--text-secondary); }
 
-        .temp-main {
-            font-size: 72px;
-            font-weight: 300;
-            line-height: 1;
-            letter-spacing: -2px;
-        }
+        /* slider dots */
+        .dots { display:flex; gap:8px; justify-content:center; margin-top:12px; }
+        .dot { width:8px; height:8px; border-radius:50%; background:rgba(0,0,0,0.12); cursor:pointer; transition: all 160ms; }
+        .dot.active { width:28px; height:8px; border-radius:999px; background:var(--accent); }
 
-        .weather-desc {
-            text-align: center;
-            font-size: 20px;
-            font-weight: 500;
-            margin-bottom: 24px;
-            color: var(--text-secondary);
-        }
+        /* forecast small cards container below */
+        .forecast-scroll { display:flex; gap:12px; overflow-x:auto; padding-top:18px; padding-bottom:8px; }
+        .forecast-card { min-width:120px; background: var(--card-bg); border-radius:12px; padding:12px; text-align:center; border:0.5px solid rgba(255,255,255,0.5); }
 
-        .advice-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            padding-top: 24px;
-            border-top: 0.5px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .advice-item {
-            background: rgba(120, 120, 128, 0.08);
-            border-radius: 12px;
-            padding: 16px;
-            text-align: center;
-        }
-
-        .advice-icon {
-            font-size: 32px;
-            margin-bottom: 8px;
-        }
-
-        .advice-title {
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .advice-detail {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .section-header {
-            font-size: 22px;
-            font-weight: 600;
-            margin: 32px 0 16px 4px;
-        }
-
-        .forecast-scroll {
-            display: flex;
-            gap: 12px;
-            overflow-x: auto;
-            padding-bottom: 8px;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-
-        .forecast-scroll::-webkit-scrollbar {
-            display: none;
-        }
-
-        .forecast-card {
-            min-width: 120px;
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border-radius: 16px;
-            padding: 20px 16px;
-            text-align: center;
-            border: 0.5px solid rgba(255, 255, 255, 0.5);
-            flex-shrink: 0;
-        }
-
-        .forecast-time {
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: var(--text-secondary);
-        }
-
-        .forecast-icon {
-            font-size: 40px;
-            margin: 8px 0;
-        }
-
-        .forecast-temp {
-            font-size: 20px;
-            font-weight: 600;
-            margin-top: 8px;
-        }
-
-        .forecast-rain {
-            font-size: 12px;
-            color: #007AFF;
-            margin-top: 4px;
-        }
-
-        body.night .navbar,
+        /* Night mode tweaks */
         body.night .hero-card,
         body.night .forecast-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.1);
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.08);
         }
+        body.night .weather-desc, body.night .update-time { color: rgba(255,255,255,0.7); }
 
-        body.night .advice-item {
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        body.night .update-time,
-        body.night .weather-desc,
-        body.night .advice-detail,
-        body.night .forecast-time {
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        body.night .period-badge {
-            background: rgba(0, 122, 255, 0.2);
-            color: #64B5F6;
-        }
-
-        .error-box {
-            text-align: center;
-            padding: 20px;
-        }
-
-        .retry-btn {
-            margin-top: 16px;
-            padding: 10px 24px;
-            border-radius: 10px;
-            border: none;
-            background: #007AFF;
-            color: white;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .retry-btn:active {
-            transform: scale(0.95);
+        /* small responsive */
+        @media (max-width:420px) {
+            .temp-main { font-size:44px; }
+            .weather-icon { font-size:56px; }
         }
     </style>
 </head>
@@ -305,62 +135,139 @@
 <body>
     <div id="loading" class="loading-screen">
         <div class="spinner"></div>
-        <p style="margin-top: 16px; font-weight: 500; color: var(--text-secondary);">載入天氣資料...</p>
+        <p style="margin-top:12px; color:var(--text-secondary); font-weight:500;">載入天氣資料...</p>
     </div>
 
     <nav class="navbar">
         <div class="nav-content">
             <div class="location-selector">
-                <select id="citySelect" class="city-dropdown"></select>
+                <select id="citySelect" class="city-dropdown" aria-label="選擇城市"></select>
             </div>
             <div class="update-time" id="updateTime">更新中...</div>
         </div>
     </nav>
 
-    <div class="container" id="mainContent" style="display: none;">
-        <div id="heroCard"></div>
-        <h2 class="section-header">預報</h2>
+    <div class="container" id="mainContent" style="display:none;">
+        <!-- Slider -->
+        <div class="slider-wrap" id="sliderWrap" aria-roledescription="carousel">
+            <div class="slider-track" id="sliderTrack">
+                <!-- Three slides (現在 / 明天 / 後天) 由 renderWeather 填入 -->
+                <div class="slide" data-index="0"><div class="hero-card" id="slide-0">載入中...</div></div>
+                <div class="slide" data-index="1"><div class="hero-card" id="slide-1">載入中...</div></div>
+                <div class="slide" data-index="2"><div class="hero-card" id="slide-2">載入中...</div></div>
+            </div>
+        </div>
+        <div class="dots" id="dotsContainer" aria-hidden="false">
+            <div class="dot active" data-dot="0"></div>
+            <div class="dot" data-dot="1"></div>
+            <div class="dot" data-dot="2"></div>
+        </div>
+
+        <h2 style="margin-top:20px; font-size:20px; font-weight:700;">預報</h2>
         <div class="forecast-scroll" id="futureForecasts"></div>
     </div>
 
     <script>
-        console.log('=== 天氣 App 開始載入 ===');
+        console.log('=== Weather Slider App Start ===');
 
         const CITIES = [
-            '臺北市', '新北市', '桃園市', '臺中市', '臺南市', '高雄市',
-            '基隆市', '新竹市', '新竹縣', '苗栗縣', '彰化縣', '南投縣',
-            '雲林縣', '嘉義市', '嘉義縣', '屏東縣', '宜蘭縣', '花蓮縣',
-            '臺東縣', '澎湖縣', '金門縣', '連江縣'
+            '臺北市','新北市','桃園市','臺中市','臺南市','高雄市',
+            '基隆市','新竹市','新竹縣','苗栗縣','彰化縣','南投縣',
+            '雲林縣','嘉義市','嘉義縣','屏東縣','宜蘭縣','花蓮縣',
+            '臺東縣','澎湖縣','金門縣','連江縣'
         ];
-        
+
         const CITY_API_MAP = {
-            '臺北市': 'taipei',
-            '新北市': 'newtaipei',
-            '桃園市': 'taoyuan',
-            '臺中市': 'taichung',
-            '臺南市': 'tainan',
-            '高雄市': 'kaohsiung',
-            '基隆市': 'keelung',
-            '新竹市': 'hsinchu-city',
-            '新竹縣': 'hsinchu',
-            '苗栗縣': 'miaoli',
-            '彰化縣': 'changhua',
-            '南投縣': 'nantou',
-            '雲林縣': 'yunlin',
-            '嘉義市': 'chiayi-city',
-            '嘉義縣': 'chiayi',
-            '屏東縣': 'pingtung',
-            '宜蘭縣': 'yilan',
-            '花蓮縣': 'hualien',
-            '臺東縣': 'taitung',
-            '澎湖縣': 'penghu',
-            '金門縣': 'kinmen',
-            '連江縣': 'lienchiang'
+            '臺北市': 'taipei','新北市': 'newtaipei','桃園市': 'taoyuan','臺中市': 'taichung','臺南市': 'tainan','高雄市': 'kaohsiung',
+            '基隆市': 'keelung','新竹市': 'hsinchu-city','新竹縣': 'hsinchu','苗栗縣': 'miaoli','彰化縣': 'changhua','南投縣': 'nantou',
+            '雲林縣': 'yunlin','嘉義市': 'chiayi-city','嘉義縣': 'chiayi','屏東縣': 'pingtung','宜蘭縣': 'yilan','花蓮縣': 'hualien',
+            '臺東縣': 'taitung','澎湖縣': 'penghu','金門縣': 'kinmen','連江縣': 'lienchiang'
         };
 
-        let currentCityIndex = 1; // 預設新北市
+        let currentCityIndex = 1; // 新北市
         const API_BASE = "https://weather-newtaipei-lk.zeabur.app/api/weather";
 
+        // Slider state
+        const sliderTrack = document.getElementById('sliderTrack');
+        const sliderWrap = document.getElementById('sliderWrap');
+        const dotsContainer = document.getElementById('dotsContainer');
+        let activeIndex = 0;
+        let isDragging = false;
+        let startX = 0;
+        let currentTranslate = 0;
+        let prevTranslate = 0;
+        let animationID = 0;
+
+        function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+        function setSliderPosition(index, animate = true) {
+            activeIndex = clamp(index, 0, 2);
+            const width = sliderWrap.clientWidth;
+            if (!animate) sliderTrack.style.transition = 'none';
+            else sliderTrack.style.transition = 'transform 300ms cubic-bezier(.22,.9,.2,1)';
+            sliderTrack.style.transform = `translateX(${ -activeIndex * width }px)`;
+            // dots
+            document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
+            const dot = document.querySelector(`.dot[data-dot="${activeIndex}"]`);
+            if (dot) dot.classList.add('active');
+            // store prevTranslate
+            prevTranslate = -activeIndex * width;
+            currentTranslate = prevTranslate;
+        }
+
+        function pointerDown(e) {
+            isDragging = true;
+            startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+            sliderTrack.style.transition = 'none';
+            animationID = requestAnimationFrame(animation);
+        }
+        function pointerMove(e) {
+            if (!isDragging) return;
+            const currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+            const dx = currentX - startX;
+            currentTranslate = prevTranslate + dx;
+        }
+        function pointerUp() {
+            if (!isDragging) return;
+            cancelAnimationFrame(animationID);
+            isDragging = false;
+            const width = sliderWrap.clientWidth;
+            const moved = currentTranslate - prevTranslate;
+            // determine to snap
+            const threshold = width * 0.2;
+            if (moved > threshold) { // moved right => previous
+                setSliderPosition(activeIndex - 1);
+            } else if (moved < -threshold) { // moved left => next
+                setSliderPosition(activeIndex + 1);
+            } else {
+                setSliderPosition(activeIndex);
+            }
+        }
+        function animation() {
+            sliderTrack.style.transform = `translateX(${currentTranslate}px)`;
+            if (isDragging) animationID = requestAnimationFrame(animation);
+        }
+
+        // make slider responsive on resize
+        window.addEventListener('resize', () => setSliderPosition(activeIndex, false));
+
+        // dot click
+        dotsContainer.addEventListener('click', (e) => {
+            const d = e.target.closest('.dot');
+            if (!d) return;
+            const idx = parseInt(d.dataset.dot, 10);
+            setSliderPosition(idx);
+        });
+
+        // attach pointer events
+        sliderWrap.addEventListener('touchstart', pointerDown, {passive:true});
+        sliderWrap.addEventListener('touchmove', pointerMove, {passive:true});
+        sliderWrap.addEventListener('touchend', pointerUp, {passive:true});
+        sliderWrap.addEventListener('mousedown', (e) => { e.preventDefault(); pointerDown(e); });
+        window.addEventListener('mousemove', pointerMove);
+        window.addEventListener('mouseup', pointerUp);
+
+        // Utility functions
         function getWeatherIcon(weather) {
             if (!weather) return "🌤️";
             if (weather.includes("晴")) return "☀️";
@@ -370,7 +277,11 @@
             if (weather.includes("雷")) return "⛈️";
             return "🌤️";
         }
-
+        function parseTemp(tempStr) {
+            if (!tempStr) return 0;
+            const num = parseInt(tempStr.toString().replace(/[^0-9-]/g, ''));
+            return isNaN(num) ? 0 : num;
+        }
         function getTimePeriod(startTime) {
             const hour = new Date(startTime).getHours();
             if (hour >= 5 && hour < 11) return "清晨";
@@ -379,155 +290,194 @@
             if (hour >= 18 && hour < 23) return "晚上";
             return "深夜";
         }
+        function formatDateLabel(offsetDays) {
+            if (offsetDays === 0) return "現在";
+            if (offsetDays === 1) return "明天";
+            if (offsetDays === 2) return "後天";
+            return "";
+        }
+        function getAdvice(rainProb, maxTemp) {
+            const rain = parseInt(rainProb) || 0;
+            const temp = parseTemp(maxTemp);
+            return {
+                rain: rain > 30 ? { icon: "☂️", text: "有人會淋雨", detail: `降雨率 ${rainProb}` }
+                                 : { icon: "🌂", text: "忘記你的傘", detail: `降雨率 ${rainProb}` },
+                cloth: temp >= 28 ? { icon: "👕", text: "穿上短袖", detail: `最高 ${maxTemp}` } :
+                       temp <= 20 ? { icon: "🧥", text: "帶上外套", detail: `最高 ${maxTemp}` } :
+                       { icon: "👔", text: "舒適穿搭", detail: `最高 ${maxTemp}` }
+            };
+        }
+
+        // Find the first forecast object that belongs to (today + offsetDays)
+        function findForecastByDay(forecasts, offsetDays) {
+            const target = new Date();
+            target.setHours(0,0,0,0);
+            target.setDate(target.getDate() + offsetDays);
+            for (const f of forecasts) {
+                const d = new Date(f.startTime);
+                const dd = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                if (dd.getTime() === target.getTime()) return f;
+            }
+            // fallback: return best-effort: pick the forecast at index offsetDays if exists
+            if (forecasts[offsetDays]) return forecasts[offsetDays];
+            return forecasts[0] || null;
+        }
+
+        function renderSlideCard(containerId, label, forecast) {
+            const el = document.getElementById(containerId);
+            if (!forecast) {
+                el.innerHTML = `<div style="padding:28px;text-align:center;font-weight:600;color:var(--text-secondary)">無資料</div>`;
+                return;
+            }
+            const avgTemp = Math.round((parseTemp(forecast.maxTemp) + parseTemp(forecast.minTemp))/2);
+            const advice = getAdvice(forecast.rain, forecast.maxTemp);
+            const period = label === "現在" ? getTimePeriod(forecast.startTime) : label;
+            el.innerHTML = `
+                <div class="period-badge">${period}</div>
+                <div style="display:flex;align-items:center;gap:16px;">
+                    <div style="flex:0 0 auto;">
+                        <div class="weather-icon">${getWeatherIcon(forecast.weather)}</div>
+                    </div>
+                    <div style="flex:1 1 auto;">
+                        <div class="temp-main">${avgTemp}°</div>
+                        <div class="weather-desc">${forecast.weather}</div>
+                        <div style="margin-top:12px;">
+                            <div style="font-size:13px;color:var(--text-secondary);">溫度：${forecast.minTemp} / ${forecast.maxTemp}</div>
+                            <div style="font-size:13px;color:var(--text-secondary);">降雨機率：${forecast.rain}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="advice-grid" style="margin-top:16px;">
+                    <div class="advice-item">
+                        <div class="advice-icon">${advice.rain.icon}</div>
+                        <div class="advice-title">${advice.rain.text}</div>
+                        <div class="advice-detail">${advice.rain.detail}</div>
+                    </div>
+                    <div class="advice-item">
+                        <div class="advice-icon">${advice.cloth.icon}</div>
+                        <div class="advice-title">${advice.cloth.text}</div>
+                        <div class="advice-detail">${advice.cloth.detail}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderForecastList(forecasts) {
+            const container = document.getElementById('futureForecasts');
+            container.innerHTML = '';
+            const todayDate = new Date().getDate();
+            forecasts.forEach(f => {
+                const fDate = new Date(f.startTime);
+                const label = (fDate.getDate() === todayDate) ? getTimePeriod(f.startTime) :
+                              (fDate.getDate() === (new Date().getDate()+1)) ? '明天' :
+                              (fDate.getDate() === (new Date().getDate()+2)) ? '後天' : `${fDate.getMonth()+1}/${fDate.getDate()}`;
+                const card = document.createElement('div');
+                card.className = 'forecast-card';
+                card.innerHTML = `
+                    <div style="font-weight:700;color:var(--text-secondary);font-size:13px;">${label}</div>
+                    <div style="font-size:28px;margin:8px 0;">${getWeatherIcon(f.weather)}</div>
+                    <div style="font-weight:700">${f.minTemp} - ${f.maxTemp}</div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-top:6px;">💧 ${f.rain}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
 
         function updateBackgroundByTime() {
             const hour = new Date().getHours();
-            document.body.classList.remove('dawn', 'day', 'evening', 'night');
-            if (hour >= 5 && hour < 11) document.body.classList.add('dawn');
+            document.body.classList.remove('dawn','day','evening','night');
+            if (hour >=5 && hour < 11) document.body.classList.add('dawn');
             else if (hour >= 11 && hour < 18) document.body.classList.add('day');
             else if (hour >= 18 && hour < 23) document.body.classList.add('evening');
             else document.body.classList.add('night');
         }
 
-        function parseTemp(tempStr) {
-            if (!tempStr) return 0;
-            const num = parseInt(tempStr.toString().replace(/[^0-9-]/g, ''));
-            return isNaN(num) ? 0 : num;
-        }
-
-        function getAdvice(rainProb, maxTemp) {
-            const rain = parseInt(rainProb) || 0;
-            const temp = parseTemp(maxTemp);
-
-            return {
-                rain: rain > 30 
-                    ? { icon: "☂️", text: "人在傘在", detail: `降雨率 ${rainProb}` } 
-                    : { icon: "🌂", text: "不用帶傘", detail: `降雨率 ${rainProb}` },
-                cloth: temp >= 28 
-                    ? { icon: "👕", text: "短袖就好", detail: `最高 ${maxTemp}` }
-                    : temp <= 20 
-                    ? { icon: "🧥", text: "帶上外套", detail: `最高 ${maxTemp}` }
-                    : { icon: "👔", text: "舒適穿搭", detail: `最高 ${maxTemp}` }
-            };
-        }
-
-        function renderWeather(data) {
-            const forecasts = data.forecasts;
-            const current = forecasts[0];
-            const others = forecasts.slice(1);
-
-            const period = getTimePeriod(current.startTime);
-            const avgTemp = Math.round((parseTemp(current.maxTemp) + parseTemp(current.minTemp)) / 2);
-            const advice = getAdvice(current.rain, current.maxTemp);
-
-            document.getElementById('heroCard').innerHTML = `
-                <div class="hero-card">
-                    <div class="period-badge">${period}</div>
-                    <div class="temp-display">
-                        <div class="weather-icon">${getWeatherIcon(current.weather)}</div>
-                        <div class="temp-main">${avgTemp}°</div>
-                    </div>
-                    <div class="weather-desc">${current.weather}</div>
-                    <div class="advice-grid">
-                        <div class="advice-item">
-                            <div class="advice-icon">${advice.rain.icon}</div>
-                            <div class="advice-title">${advice.rain.text}</div>
-                            <div class="advice-detail">${advice.rain.detail}</div>
-                        </div>
-                        <div class="advice-item">
-                            <div class="advice-icon">${advice.cloth.icon}</div>
-                            <div class="advice-title">${advice.cloth.text}</div>
-                            <div class="advice-detail">${advice.cloth.detail}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            const scrollContainer = document.getElementById('futureForecasts');
-            scrollContainer.innerHTML = '';
-            const todayDate = new Date().getDate();
-
-            others.forEach(f => {
-                let p = getTimePeriod(f.startTime);
-                const fDate = new Date(f.startTime);
-                if (fDate.getDate() !== todayDate) p = "明天" + p;
-
-                scrollContainer.innerHTML += `
-                    <div class="forecast-card">
-                        <div class="forecast-time">${p}</div>
-                        <div class="forecast-icon">${getWeatherIcon(f.weather)}</div>
-                        <div class="forecast-temp">${f.minTemp} - ${f.maxTemp}</div>
-                        <div class="forecast-rain">💧 ${f.rain}</div>
-                    </div>
-                `;
-            });
-
-            const now = new Date();
-            const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
-            document.getElementById('updateTime').textContent =
-                `${now.getMonth() + 1}/${now.getDate()} 週${weekDays[now.getDay()]}`;
-        }
-
         async function fetchWeather() {
+            console.log('fetchWeather start');
             const cityName = CITIES[currentCityIndex];
             const cityCode = CITY_API_MAP[cityName];
             const API_URL = `${API_BASE}/${cityCode}`;
 
+            // show loading
+            document.getElementById('loading').style.display = 'flex';
+            document.getElementById('mainContent').style.display = 'none';
+
             try {
-                const response = await fetch(API_URL);
-                const json = await response.json();
+                const resp = await fetch(API_URL);
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const json = await resp.json();
+                if (!json.success || !json.data) throw new Error('API data error');
 
-                if (json.success && json.data) {
-                    renderWeather(json.data);
+                const data = json.data;
+                const forecasts = data.forecasts || [];
 
-                    setTimeout(() => {
-                        document.getElementById('loading').style.display = 'none';
-                        document.getElementById('mainContent').style.display = 'block';
-                    }, 500);
-                }
-            } catch (error) {
+                // fill slides: now, tomorrow, day after
+                const f0 = findForecastByDay(forecasts, 0);
+                const f1 = findForecastByDay(forecasts, 1);
+                const f2 = findForecastByDay(forecasts, 2);
+
+                renderSlideCard('slide-0', formatDateLabel(0), f0);
+                renderSlideCard('slide-1', formatDateLabel(1), f1);
+                renderSlideCard('slide-2', formatDateLabel(2), f2);
+
+                // update forecast list
+                renderForecastList(forecasts);
+
+                // update updateTime
+                const now = new Date();
+                const weekDays = ['日','一','二','三','四','五','六'];
+                document.getElementById('updateTime').textContent = `${now.getMonth()+1}/${now.getDate()} 週${weekDays[now.getDay()]}`;
+
+                // set slider to first slide
+                setTimeout(() => {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('mainContent').style.display = 'block';
+                    // ensure slider layout measured
+                    setSliderPosition(0, false);
+                }, 260);
+
+                // log
+                console.log('fetchWeather success', { cityName, API_URL, forecastsCount: forecasts.length });
+
+            } catch (err) {
+                console.error('fetchWeather error', err);
                 document.getElementById('loading').innerHTML = `
-                    <div class="error-box">
-                        <div style="font-size: 48px;">⚠️</div>
-                        <p style="margin-top: 16px; color: var(--text-secondary); font-weight: 500;">無法載入天氣資料</p>
-                        <button class="retry-btn" onclick="location.reload()">重新載入</button>
+                    <div class="error-box" style="text-align:center;padding:20px;">
+                        <div style="font-size:48px;">⚠️</div>
+                        <p style="margin-top:12px;color:var(--text-secondary);font-weight:600;">無法載入天氣資料</p>
+                        <p style="margin-top:6px;color:var(--text-secondary);font-size:13px;">${err.message}</p>
+                        <button class="retry-btn" onclick="location.reload()" style="margin-top:12px;padding:10px 18px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:600;">重新載入</button>
                     </div>
                 `;
             }
         }
 
-        /* ---------------------------
-           初始化 Dropdown + 事件綁定
-           --------------------------- */
-        document.addEventListener("DOMContentLoaded", () => {
-            console.log('DOM 載入完成');
+        /* ------------------------------
+           初始化下拉選單 & 事件綁定
+           ------------------------------ */
+        document.addEventListener('DOMContentLoaded', () => {
+            updateBackgroundByTime();
 
-            const citySelect = document.getElementById("citySelect");
-
-            // 建立城市選項
-            CITIES.forEach((city, index) => {
-                const option = document.createElement("option");
-                option.value = index;
-                option.textContent = city;
-                citySelect.appendChild(option);
+            const citySelect = document.getElementById('citySelect');
+            CITIES.forEach((c, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.textContent = c;
+                citySelect.appendChild(opt);
             });
-
-            // 設定預設值（新北市 index = 1）
             citySelect.value = currentCityIndex;
 
-            // 當選擇變動 → 更新城市並載入天氣
-            citySelect.addEventListener("change", () => {
-                currentCityIndex = parseInt(citySelect.value);
-
-                document.getElementById('loading').style.display = 'flex';
-                document.getElementById('mainContent').style.display = 'none';
-
+            citySelect.addEventListener('change', (e) => {
+                currentCityIndex = parseInt(e.target.value, 10);
+                // reset to first slide on city change
+                setSliderPosition(0);
                 fetchWeather();
             });
 
-            updateBackgroundByTime();
+            // initial load
             fetchWeather();
         });
+
     </script>
 </body>
 
